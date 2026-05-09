@@ -108,6 +108,10 @@ CREATE TABLE IF NOT EXISTS availability_rules (
     )
 );
 
+ALTER TABLE availability_rules
+ADD CONSTRAINT availability_rules_provider_day_unique
+UNIQUE (provider_id, day_of_week);
+
 CREATE INDEX IF NOT EXISTS idx_availability_rules_provider_day
 ON availability_rules(provider_id, day_of_week);
 

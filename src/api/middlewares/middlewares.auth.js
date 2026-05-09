@@ -25,7 +25,7 @@ export const verifyToken = async function (req, res, next) {
       }
 
       const decodedToken = Helpers.decodeJWTToken(token);
-      console.log('DECODED TOKEN:', decodedToken);
+    //   console.log('DECODED TOKEN:', decodedToken);
 
       const user = await authModel.checkIfUserActivelyExistsByUserId(decodedToken.user_id);
       if (!user) {
