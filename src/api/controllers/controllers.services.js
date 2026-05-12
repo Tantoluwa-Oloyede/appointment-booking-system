@@ -245,6 +245,17 @@ export const updateService = async (req, res, next) => {
             });
         }
 
+        if (price !== undefined) {
+            const priceStr = String(price);
+            if (priceStr.includes('.') && priceStr.split('.')[1].length > 2) {
+                return res.status(422).json({
+                    status: 'error',
+                    code: 422,
+                    message: 'price cannot have more than 2 decimal places'
+                });
+            }
+        }
+
         const providerProfile = await resolveProviderProfile(user_id);
         if (!providerProfile) {
             return res.status(403).json({

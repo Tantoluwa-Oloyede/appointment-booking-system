@@ -358,12 +358,12 @@ BEGIN
         VALUES (
             NEW.id,
             NULL,
-            CASE
+           ( CASE
                 WHEN NEW.status = 'cancelled' THEN 'cancelled'
                 WHEN NEW.status = 'confirmed' THEN 'confirmed'
                 WHEN NEW.status = 'completed' THEN 'completed'
                 ELSE 'created'
-            END,
+            END )::event_type,
             OLD.status,
             NEW.status,
             jsonb_build_object(
