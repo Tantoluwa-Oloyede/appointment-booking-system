@@ -1,16 +1,4 @@
-// export default{
-//   checkUserExistsByEmail: ` SELECT id, full_name, email, role, is_verified, is_active FROM users WHERE email = $1
-//    `,
-//   createUser: ` INSERT INTO users ( full_name, email, phone, password_hash, role, is_verified, verification_token, verification_token_expires_at)
-//     VALUES ($1, $2, $3, $4, 'customer', FALSE, $5, $6)
-//     RETURNING id, full_name, email, phone, role, is_verified, is_active, created_at
-//    `,
-
-// }
-
-
 export default {
-
 
     checkUserExistsByEmail: `
         SELECT id, full_name, email, role, is_verified, is_active
@@ -44,8 +32,6 @@ export default {
         SELECT id FROM service_providers WHERE user_id = $1
     `,
 
-
-
     findUserByEmailForVerification: `
         SELECT id, full_name, email, is_verified, verification_token, verification_token_expires_at
         FROM users
@@ -60,8 +46,6 @@ export default {
         WHERE id = $1
         RETURNING id, full_name, email, role, is_verified
     `,
-
-
 
     findUserForLogin: `
         SELECT id, full_name, email, password_hash, role, is_verified, is_active
@@ -109,5 +93,4 @@ export default {
         WHERE id = $2
         RETURNING id, full_name, email
     `,
-
 };

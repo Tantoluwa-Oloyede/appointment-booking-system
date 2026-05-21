@@ -140,7 +140,7 @@ export const createBooking = async (req, res, next) => {
             });
             booking_id = result.booking_id;
         } catch (dbError) {
-            // catch exclusion constraint violation — double booking attempt
+            // catch exclusion constraint violation. Double booking attempt
             if (dbError.code === '23P01') {
                 return res.status(409).json({
                     status: 'error',
@@ -154,7 +154,7 @@ export const createBooking = async (req, res, next) => {
         // fetch full booking details to return
         const booking = await bookingModel.getBookingById(booking_id);
 
-        // send confirmation email — non-blocking
+        // send confirmation email 
         const emailContent = `Hello ${booking.customer_name}, your booking for ${booking.service_name} at ${booking.business_name} has been received. Your appointment is on ${startDate.toUTCString()}. We will notify you once it is confirmed.`;
         sendMail(booking.customer_email, 'Booking Received', emailContent).catch(() => {});
 
@@ -241,8 +241,7 @@ export const getBookingById = async (req, res, next) => {
             });
         }
 
-        // permission check — only the customer who owns it,
-        // the provider it belongs to, or an admin can see it
+        // permission check ( only the customer who owns it, the provider it belongs to, or an admin can see it )
         const providerProfile = role === 'provider'
             ? await serviceModel.getProviderProfileByUserId(user_id)
             : null;
@@ -270,7 +269,6 @@ export const getBookingById = async (req, res, next) => {
         return next(error);
     }
 };
-
 
 
 // CONFIRM BOOKING 
@@ -320,6 +318,7 @@ export const confirmBooking = async (req, res, next) => {
         return next(error);
     }
 };
+
 
 // CANCEL BOOKING 
 export const cancelBooking = async (req, res, next) => {

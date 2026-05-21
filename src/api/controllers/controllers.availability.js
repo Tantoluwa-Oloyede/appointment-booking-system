@@ -1,407 +1,3 @@
-// import * as availabilityModel from '../models/models.availability.js';
-// import * as serviceModel from '../models/models.services.js';
-
-// const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-// const timeToMinutes = (timeStr) => {
-//     const [hours, minutes] = timeStr.split(':').map(Number);
-//     return hours * 60 + minutes;
-// };
-
-// const minutesToTime = (minutes) => {
-//     const h = Math.floor(minutes / 60).toString().padStart(2, '0');
-//     const m = (minutes % 60).toString().padStart(2, '0');
-//     return `${h}:${m}`;
-// };
-
-
-// //  SET AVAILABILITY 
-// // Provider sends rules for all 7 days at once
-// export const setAvailability = async (req, res, next) => {
-//     try {
-//         const { rules } = req.body;
-//         const { id: user_id, role } = req.user;
-
-//         if (role !== 'provider') {
-//             return res.status(403).json({
-//                 status: 'error',
-//                 code: 403,
-//                 message: 'Only providers can set availability'
-//             });
-//         }
-
-//         if (!rules || !Array.isArray(rules) || rules.length === 0) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'rules must be a non-empty array'
-//             });
-//         }
-
-//         if (rules.length > 7) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'rules cannot have more than 7 entries (one per day)'
-//             });
-//         }
-
-//         const providerProfile = await serviceModel.getProviderProfileByUserId(user_id);
-//         if (!providerProfile) {
-//             return res.status(403).json({
-//                 status: 'error',
-//                 code: 403,
-//                 message: 'You must complete your business profile before setting availability'
-//             });
-//         }
-
-//         // validate each rule
-//         for (const rule of rules) {
-//             const { day_of_week, status, start_time, end_time, break_start, break_end } = rule;
-
-//             if (day_of_week === undefined || day_of_week < 0 || day_of_week > 6) {
-//                 return res.status(422).json({
-//                     status: 'error',
-//                     code: 422,
-//                     message: `day_of_week must be between (Sunday) and  (Saturday)`
-//                 });
-//             }
-
-//             if (!status || !['open', 'closed'].includes(status)) {
-//                 return res.status(422).json({
-//                     status: 'error',
-//                     code: 422,
-//                     message: `status must be either "open" or "closed" for day ${day_of_week}`
-//                 });
-//             }
-
-//             if (status === 'open') {
-//                 if (!start_time || !end_time) {
-//                     return res.status(422).json({
-//                         status: 'error',
-//                         code: 422,
-//                         message: `start_time and end_time are required for open days (day ${day_of_week})`
-//                     });
-//                 }
-
-//                 if (timeToMinutes(start_time) >= timeToMinutes(end_time)) {
-//                     return res.status(422).json({
-//                         status: 'error',
-//                         code: 422,
-//                         message: `start_time must be before end_time for day ${day_of_week}`
-//                     });
-//                 }
-
-//                 if (start_time >= end_time) {
-//                     return res.status(422).json({
-//                         status: 'error',
-//                         code: 422,
-//                         message: 'start_time must be before end_time'
-//                     });
-//                 }
-
-//                 if ((break_start && !break_end) || (!break_start && break_end)) {
-//                     return res.status(422).json({
-//                         status: 'error',
-//                         code: 422,
-//                         message: `both break_start and break_end must be provided together for day ${day_of_week}`
-//                     });
-//                 }
-
-//                 if (break_start && break_end) {
-//                     if (timeToMinutes(break_start) >= timeToMinutes(break_end)) {
-//                         return res.status(422).json({
-//                             status: 'error',
-//                             code: 422,
-//                             message: `break_start must be before break_end for day ${day_of_week}`
-//                         });
-//                     }
-//                 }
-//             }
-//         }
-
-//         // upsert all rules
-//         const saved = await Promise.all(
-//             rules.map(rule => availabilityModel.upsertAvailabilityRule({
-//                 provider_id: providerProfile.id,
-//                 day_of_week: rule.day_of_week,
-//                 start_time: rule.status === 'open' ? rule.start_time : '00:00',
-//                 end_time: rule.status === 'open' ? rule.end_time : '23:59',
-//                 break_start: rule.break_start || null,
-//                 break_end: rule.break_end || null,
-//                 status: rule.status
-//             }))
-//         );
-
-//         return res.status(200).json({
-//             status: 'success',
-//             code: 200,
-//             message: 'Availability set successfully',
-//             data: saved
-//         });
-
-//     } catch (error) {
-//         return next(error);
-//     }
-// };
-
-
-// //  GET AVAILABILITY 
-// export const getAvailability = async (req, res, next) => {
-//     try {
-//         const { provider_id } = req.query;
-
-//         if (!provider_id) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'provider_id is required as a query parameter'
-//             });
-//         }
-
-//         const rules = await availabilityModel.getAvailabilityRulesByProviderId(provider_id);
-
-//         // attach day name for readability
-//         const formatted = rules.map(rule => ({
-//             ...rule,
-//             day_name: DAYS[rule.day_of_week]
-//         }));
-
-//         return res.status(200).json({
-//             status: 'success',
-//             code: 200,
-//             message: 'Availability fetched successfully',
-//             data: formatted
-//         });
-
-//     } catch (error) {
-//         return next(error);
-//     }
-// };
-
-
-// // UPDATE ONE DAY 
-// export const updateAvailabilityRule = async (req, res, next) => {
-//     try {
-//         const { id } = req.params;
-//         const { start_time, end_time, break_start, break_end, status } = req.body;
-//         const { id: user_id, role } = req.user;
-
-//         if (role !== 'provider') {
-//             return res.status(403).json({
-//                 status: 'error',
-//                 code: 403,
-//                 message: 'Only providers can update availability'
-//             });
-//         }
-
-//         if (!start_time && !end_time && !status && !break_start && !break_end) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'At least one field is required to update'
-//             });
-//         }
-
-//         if (start_time && end_time) {
-//             if (timeToMinutes(start_time) >= timeToMinutes(end_time)) {
-//                 return res.status(422).json({
-//                     status: 'error',
-//                     code: 422,
-//                     message: 'start_time must be before end_time'
-//                 });
-//             }
-//         }
-
-//         if ((break_start && !break_end) || (!break_start && break_end)) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'both break_start and break_end must be provided together'
-//             });
-//         }
-
-//         const providerProfile = await serviceModel.getProviderProfileByUserId(user_id);
-//         if (!providerProfile) {
-//             return res.status(403).json({
-//                 status: 'error',
-//                 code: 403,
-//                 message: 'Provider profile not found'
-//             });
-//         }
-
-//         const updated = await availabilityModel.updateAvailabilityRule({
-//             id,
-//             provider_id: providerProfile.id,
-//             start_time,
-//             end_time,
-//             break_start,
-//             break_end,
-//             status
-//         });
-
-//         if (!updated) {
-//             return res.status(404).json({
-//                 status: 'error',
-//                 code: 404,
-//                 message: 'Availability rule not found or you do not have permission to update it'
-//             });
-//         }
-
-//         return res.status(200).json({
-//             status: 'success',
-//             code: 200,
-//             message: 'Availability updated successfully',
-//             data: { ...updated, day_name: DAYS[updated.day_of_week] }
-//         });
-
-//     } catch (error) {
-//         return next(error);
-//     }
-// };
-
-
-// // GET AVAILABLE SLOTS 
-// export const getAvailableSlots = async (req, res, next) => {
-//     try {
-//         const { provider_id, service_id, date } = req.query;
-
-//         if (!provider_id || !service_id || !date) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'provider_id, service_id, and date are required'
-//             });
-//         }
-
-//         // validate date format
-//         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-//         if (!dateRegex.test(date)) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'date must be in YYYY-MM-DD format'
-//             });
-//         }
-
-//         // reject past dates
-//         const requestedDate = new Date(date);
-//         const today = new Date();
-//         today.setHours(0, 0, 0, 0);
-//         if (requestedDate < today) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'date cannot be in the past'
-//             });
-//         }
-
-//         // get day of week for the requested date (0=Sunday, 6=Saturday)
-//         const dayOfWeek = requestedDate.getDay();
-
-//         // get provider's rule for that day
-//         const rule = await availabilityModel.getAvailabilityRuleByDay(provider_id, dayOfWeek);
-
-//         if (!rule || rule.status === 'closed') {
-//             return res.status(200).json({
-//                 status: 'success',
-//                 code: 200,
-//                 message: `Provider is not available on ${DAYS[dayOfWeek]}`,
-//                 data: []
-//             });
-//         }
-
-//         // get service duration
-//         const service = await availabilityModel.getServiceDuration(service_id);
-//         if (!service) {
-//             return res.status(404).json({
-//                 status: 'error',
-//                 code: 404,
-//                 message: 'Service not found'
-//             });
-//         }
-
-//         const duration = service.duration_minutes;
-
-//         // build day boundaries in UTC
-//         const dayStart = new Date(`${date}T00:00:00.000Z`);
-//         const dayEnd = new Date(`${date}T23:59:59.999Z`);
-
-//         // get booked periods and provider blocks for this date
-//         const bookedPeriods = await availabilityModel.getBookedPeriodsForDate(
-//             provider_id, dayStart.toISOString(), dayEnd.toISOString()
-//         );
-//         const providerBlocks = await availabilityModel.getProviderBlocksForDate(
-//             provider_id, dayStart.toISOString(), dayEnd.toISOString()
-//         );
-
-//         // generate candidate slots from working hours
-//         const workStart = timeToMinutes(rule.start_time);
-//         const workEnd = timeToMinutes(rule.end_time);
-//         const breakStart = rule.break_start ? timeToMinutes(rule.break_start) : null;
-//         const breakEnd = rule.break_end ? timeToMinutes(rule.break_end) : null;
-
-//         const slots = [];
-//         let current = workStart;
-
-//         while (current + duration <= workEnd) {
-//             const slotStart = current;
-//             const slotEnd = current + duration;
-
-//             // skip if slot overlaps break
-//             const overlapsBreak = breakStart !== null &&
-//                 slotStart < breakEnd && slotEnd > breakStart;
-
-//             if (!overlapsBreak) {
-//                 // build ISO strings for this slot
-//                 const slotStartISO = new Date(`${date}T${minutesToTime(slotStart)}:00.000Z`).toISOString();
-//                 const slotEndISO = new Date(`${date}T${minutesToTime(slotEnd)}:00.000Z`).toISOString();
-
-//                 // check against booked periods
-//                 const isBooked = bookedPeriods.some(b => {
-//                     const bStart = new Date(b.booking_period.start ?? b.booking_period).getTime();
-//                     const bEnd = new Date(b.booking_period.end ?? b.booking_period).getTime();
-//                     const sStart = new Date(slotStartISO).getTime();
-//                     const sEnd = new Date(slotEndISO).getTime();
-//                     return sStart < bEnd && sEnd > bStart;
-//                 });
-
-//                 // check against provider blocks
-//                 const isBlocked = providerBlocks.some(b => {
-//                     const bStart = new Date(b.block_period.start ?? b.block_period).getTime();
-//                     const bEnd = new Date(b.block_period.end ?? b.block_period).getTime();
-//                     const sStart = new Date(slotStartISO).getTime();
-//                     const sEnd = new Date(slotEndISO).getTime();
-//                     return sStart < bEnd && sEnd > bStart;
-//                 });
-
-//                 if (!isBooked && !isBlocked) {
-//                     slots.push({
-//                         start: slotStartISO,
-//                         end: slotEndISO,
-//                         duration_minutes: duration
-//                     });
-//                 }
-//             }
-
-//             current += duration;
-//         }
-
-//         return res.status(200).json({
-//             status: 'success',
-//             code: 200,
-//             message: slots.length > 0
-//                 ? `${slots.length} slot(s) available`
-//                 : 'No slots available for this date',
-//             data: slots
-//         });
-
-//     } catch (error) {
-//         return next(error);
-//     }
-// };
-
-
 import * as availabilityModel from '../models/models.availability.js';
 import * as serviceModel from '../models/models.services.js';
 
@@ -425,9 +21,6 @@ const minutesToTime = (minutes) => {
 };
 
 // SHARED RULE VALIDATOR 
-// Used by both setAvailability and updateAvailabilityRule
-// Returns error message string or null if valid
-
 const validateRule = (rule, context = 'set') => {
     const { day_of_week, status, start_time, end_time, break_start, break_end } = rule;
 
@@ -444,9 +37,9 @@ const validateRule = (rule, context = 'set') => {
     // closed day must not have any time fields
     if (status === 'closed') {
         if (start_time || end_time || break_start || break_end) {
-            return `${DAYS[day_of_week]} is closed — do not provide start_time, end_time, or break times for closed days`;
+            return `${DAYS[day_of_week]} is closed. Do not provide start_time, end_time, or break times for closed days`;
         }
-        return null; // closed day is valid
+        return null;
     }
 
     // open day validations
@@ -530,18 +123,19 @@ export const setAvailability = async (req, res, next) => {
             return res.status(422).json({
                 status: 'error',
                 code: 422,
-                message: 'rules cannot have more than 7 entries — one per day of the week'
+                message: 'rules cannot have more than 7 entries one per day of the week'
             });
         }
 
         // check for duplicate day_of_week entries in the request itself
-        const days = rules.map(r => r.day_of_week);
+        const days = rules.map(r => r.day_of_week); // Checks every rule and brings out the ( day of the week ) value from each one 
         const uniqueDays = new Set(days);
+        // A Set is a special JavaScript data structure that automatically removes duplicates. 
         if (uniqueDays.size !== days.length) {
             return res.status(422).json({
                 status: 'error',
                 code: 422,
-                message: 'each day_of_week must appear only once in the rules array'
+                message: 'Each Day Of the Week must appear only once in the rules array'
             });
         }
 
@@ -560,11 +154,11 @@ export const setAvailability = async (req, res, next) => {
             return res.status(409).json({
                 status: 'error',
                 code: 409,
-                message: 'Availability already set. Use PUT /availability/:id to update individual days'
+                message: 'Availability already set.'
             });
         }
 
-        // validate every rule
+        // validate every rule one after the other
         for (const rule of rules) {
             const error = validateRule(rule);
             if (error) {
@@ -620,7 +214,7 @@ export const getAvailability = async (req, res, next) => {
             });
         }
 
-        const rules = await availabilityModel.getAvailabilityRulesByProviderId(provider_id);
+        const rules = await availabilityModel.getAvailabilityRulesById(provider_id);
 
         if (!rules || rules.length === 0) {
             return res.status(404).json({
@@ -667,7 +261,7 @@ export const updateAvailabilityRule = async (req, res, next) => {
             return res.status(422).json({
                 status: 'error',
                 code: 422,
-                message: 'At least one field is required to update'
+                message: 'All of these fields is required to update availability'
             });
         }
 
@@ -701,7 +295,7 @@ export const updateAvailabilityRule = async (req, res, next) => {
                     message: 'both break_start and break_end must be provided together'
                 });
             }
-
+ 
             if (break_start && break_end) {
                 const breakStartMins = timeToMinutes(break_start);
                 const breakEndMins = timeToMinutes(break_end);
@@ -771,7 +365,6 @@ export const updateAvailabilityRule = async (req, res, next) => {
     }
 };
 
-
 // GET AVAILABLE SLOTS 
 export const getAvailableSlots = async (req, res, next) => {
     try {
@@ -785,7 +378,7 @@ export const getAvailableSlots = async (req, res, next) => {
             });
         }
 
-        // validate date format
+        // Validate date format (YYYY-MM-DD)
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(date)) {
             return res.status(422).json({
@@ -795,30 +388,31 @@ export const getAvailableSlots = async (req, res, next) => {
             });
         }
 
-        // validate it is a real calendar date
+        // Validate it is a real calendar date
         const parsedDate = new Date(`${date}T00:00:00.000Z`);
         if (isNaN(parsedDate.getTime())) {
             return res.status(422).json({
                 status: 'error',
                 code: 422,
-                message: 'date is not a valid calendar date'
+                message: 'Date is not a valid calendar date'
             });
-        }
+        } // checking if .getTime is a valid number (date)
 
-        // reject past dates
+        // Reject past dates
         const today = new Date();
         today.setUTCHours(0, 0, 0, 0);
         if (parsedDate < today) {
             return res.status(422).json({
                 status: 'error',
                 code: 422,
-                message: 'date cannot be in the past'
+                message: 'Date cannot be in the past'
             });
         }
 
+        // Returning a number 0-6 for weekday using UTC
         const dayOfWeek = parsedDate.getUTCDay();
 
-        // get provider rule for this day
+        // get provider rule for the selected day
         const rule = await availabilityModel.getAvailabilityRuleByDay(provider_id, dayOfWeek);
         if (!rule || rule.status === 'closed') {
             return res.status(200).json({
@@ -845,14 +439,10 @@ export const getAvailableSlots = async (req, res, next) => {
         const dayStart = new Date(`${date}T00:00:00.000Z`);
         const dayEnd = new Date(`${date}T23:59:59.999Z`);
 
-        // fetch bookings and blocks
+        // Fetch existing bookings and times provider is not available ( blocked )
         const [bookedPeriods, providerBlocks] = await Promise.all([
-            availabilityModel.getBookedPeriodsForDate(
-                provider_id, dayStart.toISOString(), dayEnd.toISOString()
-            ),
-            availabilityModel.getProviderBlocksForDate(
-                provider_id, dayStart.toISOString(), dayEnd.toISOString()
-            )
+            availabilityModel.getBookedPeriodsForDate( provider_id, dayStart.toISOString(), dayEnd.toISOString() ),
+            availabilityModel.getProviderBlocksForDate( provider_id, dayStart.toISOString(), dayEnd.toISOString() )
         ]);
 
         // generate slots
@@ -874,8 +464,8 @@ export const getAvailableSlots = async (req, res, next) => {
             if (!overlapsBreak) {
                 const slotStartISO = new Date(`${date}T${minutesToTime(slotStart)}:00.000Z`).toISOString();
                 const slotEndISO = new Date(`${date}T${minutesToTime(slotEnd)}:00.000Z`).toISOString();
-                const sStart = new Date(slotStartISO).getTime();
-                const sEnd = new Date(slotEndISO).getTime();
+                const slotStart = new Date(slotStartISO).getTime();
+                const slotEnd = new Date(slotEndISO).getTime();
 
                 const isBooked = bookedPeriods.some(b => {
                     const bStart = new Date(b.booking_period.start ?? b.booking_period).getTime();
@@ -914,3 +504,7 @@ export const getAvailableSlots = async (req, res, next) => {
         return next(error);
     }
 };
+
+
+
+// ISO mean International Organization For Standardizaion

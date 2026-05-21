@@ -1,8 +1,5 @@
 import Joi from 'joi';
 
-// import JoiDate from '@joi/date';
-// const Joi = Joi.extend(JoiDate);
-
 export const registerSchema = Joi.object({
     full_name: Joi.string()
     .trim()
@@ -54,37 +51,3 @@ export const registerSchema = Joi.object({
 
  
 });
-
-// export const loginSchema = Joi.object({
-//   email: Joi.string()
-//     .email()
-//     .required()
-//     .messages({
-//       'string.empty': 'Email is required',
-//       'string.email': 'Please provide a valid email address'
-//     }),
-
-//   password: Joi.string()
-//     .required()
-//     .messages({
-//       'string.empty': 'Password is required'
-//     })
-// });
-
-// export const resendPasswordSchema = Joi.object({
-//   email: Joi.string()
-//     .email()
-//     .required()
-//     .messages({
-//       'string.empty': 'Email is required',
-//       'string.email': 'Please provide a valid email address'
-//     })
-// });
-
-// export const verifyAccountSchema = Joi.object({
-//   token: Joi.string()
-//     .required()
-//     .messages({
-//       'string.empty': 'Verification token is required'
-//     })
-// });

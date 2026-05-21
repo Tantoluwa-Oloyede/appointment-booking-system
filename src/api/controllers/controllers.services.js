@@ -1,8 +1,6 @@
 import * as serviceModel from '../models/models.services.js';
 
-// ─── HELPER — gets provider profile from logged in user
-// Used in every controller to resolve provider_id from req.user.id
-
+// Gets provider profile from logged in user
 const resolveProviderProfile = async (user_id) => {
     return await serviceModel.getProviderProfileByUserId(user_id);
 };
@@ -97,36 +95,6 @@ export const createService = async (req, res, next) => {
 
 
 // LIST SERVICES FOR A PROVIDER 
-// export const getServices = async (req, res, next) => {
-//     try {
-//         const { provider_id } = req.query;
-//         const { role } = req.user;
-
-//         if (!provider_id) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'provider_id is required as a query parameter'
-//             });
-//         }
-
-//         // providers see all their services, customers see active only
-//         const services = role === 'provider'
-//             ? await serviceModel.getServicesByProviderId(provider_id)
-//             : await serviceModel.getActiveServicesByProviderId(provider_id);
-
-//         return res.status(200).json({
-//             status: 'success',
-//             code: 200,
-//             message: 'Services fetched successfully',
-//             data: services
-//         });
-
-//     } catch (error) {
-//         return next(error);
-//     }
-// };
-
 export const getServices = async (req, res, next) => {
     try {
         const { provider_id } = req.query;
@@ -146,10 +114,10 @@ export const getServices = async (req, res, next) => {
             // verify this provider_id actually belongs to the logged in user
             const providerProfile = await serviceModel.getProviderProfileByUserId(user_id);
             if (!providerProfile || providerProfile.id !== provider_id) {
-                // not their profile — treat them like a customer
+                // If it is not their profile treat them like a customer
                 services = await serviceModel.getActiveServicesByProviderId(provider_id);
             } else {
-                // their own profile — show everything
+                // If it is their own profile show everything
                 services = await serviceModel.getServicesByProviderId(provider_id);
             }
         } else {
@@ -275,7 +243,7 @@ export const updateService = async (req, res, next) => {
             price
         });
 
-        // if null — service not found OR doesn't belong to this provider
+        // if null: Service not found OR doesn't belong to this provider
         if (!updated) {
             return res.status(404).json({
                 status: 'error',

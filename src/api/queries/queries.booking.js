@@ -1,8 +1,5 @@
 export default {
 
-    // CREATE 
-    // Uses the PostgreSQL function we already have in the migration
-    // It handles the insert + booking_event in one transaction
     createBooking: `
         SELECT create_booking($1, $2, $3, $4, $5, $6) AS booking_id
     `,

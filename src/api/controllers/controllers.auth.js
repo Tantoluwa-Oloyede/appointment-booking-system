@@ -23,9 +23,6 @@ const validateBaseRegistrationFields = ({ full_name, email, phone, password }) =
 };
 
 // SHARED REGISTRATION LOGIC 
-// Handles: email check, hashing, OTP, email send, DB insert
-// role is passed in so both customer and provider use this
-
 const handleBaseRegistration = async ({ full_name, email, phone, password, role }) => {
     const existingUser = await authModel.checkUserExistsByEmail(email);
     if (existingUser) {
@@ -60,12 +57,12 @@ const handleBaseRegistration = async ({ full_name, email, phone, password, role 
 };
 
 
-//  CUSTOMER REGISTER  
+//  CUSTOMER REGISTRTION
 export const register = async (req, res, next) => {
     try {
         const { full_name, email, phone, password, role } = req.body;
 
-        // block anyone trying to sneak in a different role
+        // block anyone trying to input a different role
         if (role && role !== 'customer') {
             return res.status(403).json({
                 status: 'error',
@@ -97,7 +94,7 @@ export const register = async (req, res, next) => {
     }
 };
 
-//  PROVIDER REGISTER
+//  PROVIDER REGISTRATION
 export const registerProvider = async (req, res, next) => {
     try {
         const { full_name, email, phone, password } = req.body;
@@ -243,7 +240,7 @@ export const verifyEmail = async (req, res, next) => {
             });
         }
 
-        // OTP expired
+        // Code expired
         if (new Date() > new Date(user.verification_token_expires_at)) {
             return res.status(400).json({
                 status: 'error',
@@ -252,7 +249,7 @@ export const verifyEmail = async (req, res, next) => {
             });
         }
 
-        // OTP does not match
+        // Code does not match
         if (verification_code !== user.verification_token) {
             return res.status(400).json({
                 status: 'error',
@@ -261,10 +258,10 @@ export const verifyEmail = async (req, res, next) => {
             });
         }
 
-        // mark as verified and clear token from DB
+        // Mark as verified and clear token from DB
         const verifiedUser = await authModel.markUserAsVerified(user.id);
 
-        // send welcome email
+        // sSend a Welcome Email 
         const emailContent = `Hello ${user.full_name}, welcome! Your account has been successfully verified. You can now log in.`;
         await sendMail(user.email, 'Account Verified', emailContent);
 
@@ -304,8 +301,7 @@ export const login = async (req, res, next) => {
 
         const user = await authModel.findUserForLogin(email);
 
-        // SECURITY: same message for both user not found and wrong password
-        // never reveal which one failed — prevents email enumeration
+        // Same message for both user not found and wrong password
         if (!user) {
             return res.status(401).json({
                 status: 'error',
@@ -332,7 +328,6 @@ export const login = async (req, res, next) => {
 
         const validPassword = await Hash.compareData(password, user.password_hash);
 
-        // SECURITY: same message as user not found
         if (!validPassword) {
             return res.status(401).json({
                 status: 'error',
@@ -403,7 +398,7 @@ export const resendOtp = async (req, res, next) => {
             verification_token_expires_at: verificationCodeExpireAt
         });
 
-        const emailContent = `Hello ${user.full_name}, your new OTP is: ${verificationCode}. This OTP will expire in ${verificationCodeDuration} minutes.`;
+        const emailContent = `Hello ${user.full_name}, your new code is: ${verificationCode}. This code will expire in ${verificationCodeDuration} minutes.`;
         await sendMail(email, 'Resend OTP - Verify Your Account', emailContent);
 
         return res.status(200).json({
@@ -432,8 +427,7 @@ export const forgotPassword = async (req, res, next) => {
 
         const user = await authModel.findUserByEmailForVerification(email);
 
-        // SECURITY: always return success even if email doesn't exist
-        // prevents email enumeration attacks
+        // Return success even if email doesn't exist. Prevents email enumeration attacks
         if (!user) {
             return res.status(200).json({
                 status: 'success',
@@ -452,7 +446,7 @@ export const forgotPassword = async (req, res, next) => {
             verification_token_expires_at: resetCodeExpireAt
         });
 
-        const emailContent = `Hello ${user.full_name}, your password reset OTP is: ${resetCode}. This OTP will expire in ${resetCodeDuration} minutes. If you did not request this, ignore this email.`;
+        const emailContent = `Hello ${user.full_name}, your password reset code is: ${resetCode}. This code will expire in ${resetCodeDuration} minutes. If you did not request this, ignore this email.`;
         await sendMail(email, 'Reset Your Password', emailContent);
 
         return res.status(200).json({
@@ -571,71 +565,3 @@ export const getMe = async (req, res, next) => {
     }
 };
 
-
-
-
-// export const forgotPassword = async (req, res, next) => {
-//     try {
-//         const { email } = req.body;
-
-//         if (!email) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'email is required'
-//             });
-//         }
-
-//         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//         if (!emailRegex.test(email)) {
-//             return res.status(422).json({
-//                 status: 'error',
-//                 code: 422,
-//                 message: 'Invalid email format'
-//             });
-//         }
-
-//         const user = await authModel.findUserByEmailForVerification(email);
-
-//         // SECURITY: if user doesn't exist, still return 200
-//         // never confirm or deny whether an email is registered
-//         if (!user) {
-//             return res.status(200).json({
-//                 status: 'success',
-//                 code: 200,
-//                 message: 'If an account with this email exists, a reset OTP has been sent. Please check your inbox and spam folder.'
-//             });
-//         }
-
-//         // account exists but is suspended
-//         if (!user.is_active) {
-//             return res.status(200).json({
-//                 status: 'success',
-//                 code: 200,
-//                 message: 'If an account with this email exists, a reset OTP has been sent. Please check your inbox and spam folder.'
-//             });
-//         }
-
-//         const resetCode = Helpers.generateVerificationCode(6);
-//         const resetCodeDuration = 15; // minutes
-//         const resetCodeExpireAt = new Date(Date.now() + resetCodeDuration * 60 * 1000);
-
-//         await authModel.updatePasswordResetToken({
-//             email,
-//             verification_token: resetCode,
-//             verification_token_expires_at: resetCodeExpireAt
-//         });
-
-//         const emailContent = `Hello ${user.full_name}, your password reset OTP is: ${resetCode}. This OTP will expire in ${resetCodeDuration} minutes. If you did not request this, ignore this email.`;
-//         await sendMail(email, 'Reset Your Password', emailContent);
-
-//         return res.status(200).json({
-//             status: 'success',
-//             code: 200,
-//             message: 'If an account with this email exists, a reset OTP has been sent. Please check your inbox and spam folder.'
-//         });
-
-//     } catch (error) {
-//         return next(error);
-//     }
-// };

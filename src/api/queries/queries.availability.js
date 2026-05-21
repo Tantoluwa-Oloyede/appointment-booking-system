@@ -73,12 +73,4 @@ export default {
         WHERE provider_id = $1
     `,
 
-
-
-
-
-
-
-
-
 };

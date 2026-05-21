@@ -1,13 +1,11 @@
 export default {
 
-    
     createService: `
         INSERT INTO services (provider_id, name, description, category, duration_minutes, price)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id, provider_id, name, description, category, duration_minutes, price, is_active, created_at
     `,
 
-   
     getServicesByProviderId: `
         SELECT id, provider_id, name, description, category, duration_minutes, price, is_active, created_at
         FROM services
@@ -28,7 +26,6 @@ export default {
         FROM services
         WHERE id = $1
     `,
-
     
     updateService: `
         UPDATE services
@@ -43,7 +40,6 @@ export default {
         RETURNING id, provider_id, name, description, category, duration_minutes, price, is_active, updated_at
     `,
 
-    
     deactivateService: `
         UPDATE services
         SET is_active = FALSE

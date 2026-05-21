@@ -1,7 +1,6 @@
 import db from '../../config/db/index.js';
 import queries from '../queries/queries.booking.js';
 
-// CREATE 
 export const createBooking = async ({
     user_id, provider_id, service_id, start_at, end_at, notes
 }) => {
@@ -36,8 +35,6 @@ export const countBookingsByProviderId = async (provider_id) => {
     return await db.one(queries.countBookingsByProviderId, [provider_id]);
 };
 
-// STATUS UPDATES 
-
 export const confirmBooking = async (id, provider_id) => {
     return await db.oneOrNone(queries.confirmBooking, [id, provider_id]);
 };
@@ -53,8 +50,6 @@ export const cancelBookingAsProvider = async (id, provider_id, reason) => {
 export const completeBooking = async (id, provider_id) => {
     return await db.oneOrNone(queries.completeBooking, [id, provider_id]);
 };
-
-// HELPERS
 
 export const getServiceWithProvider = async (service_id) => {
     return await db.oneOrNone(queries.getServiceWithProvider, [service_id]);

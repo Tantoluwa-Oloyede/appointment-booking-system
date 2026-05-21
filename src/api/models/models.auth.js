@@ -98,23 +98,3 @@ export const updatePasswordResetToken = async ({ email, verification_token, veri
 export const resetPassword = async ({ id, password_hash }) => {
     return await db.one(queries.resetPassword, [password_hash, id]);
 };
-
-
-
-
-// export const checkUserExistsByEmail = async (email) => {
-//   const user = await db.oneOrNone(queries.checkUserExistsByEmail, [email.trim().toLowerCase()]);
-//   return user;
-// };
-
-// export const createUser = async ({ full_name, email, phone, password_hash, verification_token, verification_token_expires_at }) => {
-//   const user = await db.one(queries.createUser, [
-//     full_name.trim(),
-//     email.trim().toLowerCase(),
-//     phone || null,
-//     password_hash,
-//     verification_token,
-//     verification_token_expires_at
-//   ]);
-//   return user;
-// };
