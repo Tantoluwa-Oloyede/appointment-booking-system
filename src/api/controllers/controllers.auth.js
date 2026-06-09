@@ -4,23 +4,6 @@ import * as Helpers from '../../lib/utils/utils.helpers.js';
 import sendMail from '../services/email.js';
 
 
-// SHARED VALIDATION  
-const validateBaseRegistrationFields = ({ full_name, email, phone, password }) => {
-    if (!full_name || !email || !phone || !password) {
-        return 'full_name, email, phone, and password are required';
-    }
-    if (full_name.trim().length < 3) {
-        return 'full_name must be at least 3 characters';
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return 'Invalid email format';
-    }
-    if (password.length < 8) {
-        return 'Password must be at least 8 characters';
-    }
-    return null;
-};
 
 // SHARED REGISTRATION LOGIC 
 const handleBaseRegistration = async ({ full_name, email, phone, password, role }) => {
@@ -71,10 +54,6 @@ export const register = async (req, res, next) => {
             });
         }
 
-        const validationError = validateBaseRegistrationFields({ full_name, email, phone, password });
-        if (validationError) {
-            return res.status(422).json({ status: 'error', code: 422, message: validationError });
-        }
 
         const result = await handleBaseRegistration({ full_name, email, phone, password, role: 'customer' });
 
@@ -99,10 +78,6 @@ export const registerProvider = async (req, res, next) => {
     try {
         const { full_name, email, phone, password } = req.body;
 
-        const validationError = validateBaseRegistrationFields({ full_name, email, phone, password });
-        if (validationError) {
-            return res.status(422).json({ status: 'error', code: 422, message: validationError });
-        }
 
         const result = await handleBaseRegistration({ full_name, email, phone, password, role: 'provider' });
 
@@ -144,21 +119,6 @@ export const setupProviderProfile = async (req, res, next) => {
             });
         }
 
-        if (!business_name) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'business_name is required'
-            });
-        }
-
-        if (business_name.trim().length < 3) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'business_name must be at least 3 characters'
-            });
-        }
 
         const existingBusinessName = await authModel.checkBusinessNameExists(business_name);
         if (existingBusinessName) {
@@ -202,23 +162,6 @@ export const verifyEmail = async (req, res, next) => {
     try {
         const { verification_code, email } = req.body;
 
-        // required fields
-        if (!email || !verification_code) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'email and verification_code are required'
-            });
-        }
-
-        // must be exactly 6 digits
-        if (verification_code.length !== 6) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'verification_code must be 6 digits'
-            });
-        }
 
         // find user by email
         const user = await authModel.findUserByEmailForVerification(email);
@@ -282,22 +225,6 @@ export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'email and password are required'
-            });
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'Invalid email format'
-            });
-        }
 
         const user = await authModel.findUserForLogin(email);
 
@@ -363,13 +290,6 @@ export const resendOtp = async (req, res, next) => {
     try {
         const { email } = req.body;
 
-        if (!email) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'email is required'
-            });
-        }
 
         const user = await authModel.findUserByEmailForVerification(email);
         if (!user) {
@@ -417,13 +337,6 @@ export const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
 
-        if (!email) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'email is required'
-            });
-        }
 
         const user = await authModel.findUserByEmailForVerification(email);
 
@@ -465,29 +378,6 @@ export const resetPassword = async (req, res, next) => {
     try {
         const { email, otp, new_password } = req.body;
 
-        if (!email || !otp || !new_password) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'email, otp, and new_password are required'
-            });
-        }
-
-        if (new_password.length < 8) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'new_password must be at least 8 characters'
-            });
-        }
-
-        if (otp.length !== 6) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'otp must be 6 digits'
-            });
-        }
 
         const user = await authModel.findUserByEmailForVerification(email);
         if (!user) {

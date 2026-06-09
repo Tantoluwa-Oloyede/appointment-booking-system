@@ -111,33 +111,6 @@ export const setAvailability = async (req, res, next) => {
             });
         }
 
-        if (!rules || !Array.isArray(rules) || rules.length === 0) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'rules must be a non-empty array'
-            });
-        }
-
-        if (rules.length > 7) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'rules cannot have more than 7 entries one per day of the week'
-            });
-        }
-
-        // check for duplicate day_of_week entries in the request itself
-        const days = rules.map(r => r.day_of_week); // Checks every rule and brings out the ( day of the week ) value from each one 
-        const uniqueDays = new Set(days);
-        // A Set is a special JavaScript data structure that automatically removes duplicates. 
-        if (uniqueDays.size !== days.length) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'Each Day Of the Week must appear only once in the rules array'
-            });
-        }
 
         const providerProfile = await serviceModel.getProviderProfileByUserId(user_id);
         if (!providerProfile) {
@@ -214,7 +187,7 @@ export const getAvailability = async (req, res, next) => {
             });
         }
 
-        const rules = await availabilityModel.getAvailabilityRulesById(provider_id);
+        const rules = await availabilityModel.getAvailabilityRulesByProviderId(provider_id);
 
         if (!rules || rules.length === 0) {
             return res.status(404).json({
@@ -257,24 +230,6 @@ export const updateAvailabilityRule = async (req, res, next) => {
             });
         }
 
-        if (!start_time && !end_time && !status && !break_start && !break_end) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'All of these fields is required to update availability'
-            });
-        }
-
-        // closed day must not have time fields
-        if (status === 'closed') {
-            if (start_time || end_time || break_start || break_end) {
-                return res.status(422).json({
-                    status: 'error',
-                    code: 422,
-                    message: 'Closed days cannot have start_time, end_time, or break times'
-                });
-            }
-        }
 
         // open day validations
         if (status === 'open' || (!status && (start_time || end_time))) {
@@ -370,23 +325,6 @@ export const getAvailableSlots = async (req, res, next) => {
     try {
         const { provider_id, service_id, date } = req.query;
 
-        if (!provider_id || !service_id || !date) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'provider_id, service_id, and date are required'
-            });
-        }
-
-        // Validate date format (YYYY-MM-DD)
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateRegex.test(date)) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'date must be in YYYY-MM-DD format'
-            });
-        }
 
         // Validate it is a real calendar date
         const parsedDate = new Date(`${date}T00:00:00.000Z`);
@@ -464,19 +402,23 @@ export const getAvailableSlots = async (req, res, next) => {
             if (!overlapsBreak) {
                 const slotStartISO = new Date(`${date}T${minutesToTime(slotStart)}:00.000Z`).toISOString();
                 const slotEndISO = new Date(`${date}T${minutesToTime(slotEnd)}:00.000Z`).toISOString();
-                const slotStart = new Date(slotStartISO).getTime();
-                const slotEnd = new Date(slotEndISO).getTime();
+                // const slotStart = new Date(slotStartISO).getTime();
+                // const slotEnd = new Date(slotEndISO).getTime();
+                const slotStartMs = new Date(slotStartISO).getTime();
+                const slotEndMs = new Date(slotEndISO).getTime();
 
                 const isBooked = bookedPeriods.some(b => {
                     const bStart = new Date(b.booking_period.start ?? b.booking_period).getTime();
                     const bEnd = new Date(b.booking_period.end ?? b.booking_period).getTime();
-                    return sStart < bEnd && sEnd > bStart;
+                    // return slotStart < bEnd && slotEnd > bStart;
+                    return slotStartMs < bEnd && slotEnd > bStart;
                 });
 
                 const isBlocked = providerBlocks.some(b => {
                     const bStart = new Date(b.block_period.start ?? b.block_period).getTime();
                     const bEnd = new Date(b.block_period.end ?? b.block_period).getTime();
-                    return sStart < bEnd && sEnd > bStart;
+                    // return slotStart < bEnd && slotEnd > bStart;
+                    return slotStartMs < bEnd && slotEnd > bStart;
                 });
 
                 if (!isBooked && !isBlocked) {

@@ -22,24 +22,9 @@ export const createBooking = async (req, res, next) => {
             });
         }
 
-        // required fields
-        if (!provider_id || !service_id || !start_at) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'provider_id, service_id, and start_at are required'
-            });
-        }
-
         // validate start_at format
         const startDate = new Date(start_at);
-        if (isNaN(startDate.getTime())) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'start_at must be a valid ISO date string e.g. 2026-05-12T08:00:00.000Z'
-            });
-        }
+
 
         // reject past date
         if (startDate < new Date()) {
@@ -126,7 +111,7 @@ export const createBooking = async (req, res, next) => {
             });
         }
 
-        // create booking — DB function handles transaction + booking_event
+        // create booking 
         // exclusion constraint handles double booking at DB level
         let booking_id;
         try {

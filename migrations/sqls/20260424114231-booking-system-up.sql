@@ -3,10 +3,11 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 --  pgcrypto helps in advanced encryption features
 --  btree_gist helps inadvanced indexing features
+-- UUID ( UNIVERSALLY UNIQUE IDENTIFIER )
 
 -- ENUMS TYPES 
 
--- DO $$ BEGIN ... END $$  wraps code in an executable block and EXCEPTION WHEN dup.... is just telling us to ignore error if type already exists
+-- DO $$ BEGIN ... END $$  wraps code in an executable block and EXCEPTION WHEN duplicated so it is just telling us to ignore error if type already exists
 DO $$ BEGIN
     CREATE TYPE user_role AS ENUM ('customer', 'provider', 'admin');
 EXCEPTION
@@ -79,6 +80,7 @@ CREATE TABLE IF NOT EXISTS services (
     description TEXT,
     category VARCHAR(100),
     duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
+    -- INTEGER data type that takes only whole number 40, 65... not 40.5...
     price NUMERIC(12, 2) NOT NULL DEFAULT 0 CHECK (price >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -222,7 +224,9 @@ CREATE INDEX IF NOT EXISTS idx_system_audit_logs_created_at
 ON system_audit_logs(created_at DESC);
 
 
--- UPDATED AT TRIGGERS
+-- PL/pgSQL ( Procedural Language/PostgreSQL )
+
+-- UPDATED_AT TRIGGERS
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -268,9 +272,7 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 
--- OVERLAP PREVENTION
-
-
+-- Double Booking PREVENTION
 ALTER TABLE bookings
 DROP CONSTRAINT IF EXISTS bookings_no_overlap;
 
@@ -282,6 +284,7 @@ EXCLUDE USING GIST (
 )
 WHERE (status IN ('pending', 'confirmed'));
 
+-- Stop user from booking two different things at same time 
 ALTER TABLE bookings
 DROP CONSTRAINT IF EXISTS user_no_overlap;
 
@@ -293,6 +296,7 @@ EXCLUDE USING GIST (
 )
 WHERE (status IN ('pending', 'confirmed'));
 
+-- stopping provider from blocking ou already booked time 
 ALTER TABLE provider_blocks
 DROP CONSTRAINT IF EXISTS provider_blocks_no_overlap;
 
@@ -303,10 +307,8 @@ EXCLUDE USING GIST (
     block_period WITH &&
 );
 
-
+-- TG_OP stands for Trigger Operation. It simply tells your code whether the database action is an INSERT, UPDATE, DELETE, or TRUNCATE.
 -- BOOKING STATUS TRANSITION RULES
-
-
 CREATE OR REPLACE FUNCTION enforce_booking_status_transition()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -341,30 +343,24 @@ EXECUTE FUNCTION enforce_booking_status_transition();
 
 -- BOOKING EVENT AUDIT
 
-
+-- IS DISTINCT FROM means is not equal to / !=
 CREATE OR REPLACE FUNCTION log_booking_status_change()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'UPDATE' AND OLD.status IS DISTINCT FROM NEW.status THEN
         INSERT INTO booking_events (
-            booking_id,
-            actor_user_id,
-            event_type,
-            old_status,
-            new_status,
-            event_data,
-            created_at
+            booking_id, actor_user_id, event_type, old_status, new_status, event_data, created_at
         )
         VALUES (
-            NEW.id,
-            NULL,
+            NEW.id,  NULL,
            ( CASE
                 WHEN NEW.status = 'cancelled' THEN 'cancelled'
                 WHEN NEW.status = 'confirmed' THEN 'confirmed'
                 WHEN NEW.status = 'completed' THEN 'completed'
                 ELSE 'created'
             END )::event_type,
-            OLD.status,
+
+            OLD.status, 
             NEW.status,
             jsonb_build_object(
                 'old_status', OLD.status,
@@ -387,8 +383,6 @@ EXECUTE FUNCTION log_booking_status_change();
 
 
 -- BOOKING CREATION FUNCTION
-
-
 CREATE OR REPLACE FUNCTION create_booking(
     p_user_id UUID,
     p_provider_id UUID,
@@ -399,44 +393,25 @@ CREATE OR REPLACE FUNCTION create_booking(
 )
 RETURNS UUID AS $$
 DECLARE
-    v_booking_id UUID;
+    v_booking_id UUID; -- variable_booking...
 BEGIN
     IF p_start_at >= p_end_at THEN
         RAISE EXCEPTION 'Invalid booking period';
     END IF;
 
     INSERT INTO bookings (
-        user_id,
-        provider_id,
-        service_id,
-        booking_period,
-        status,
-        notes
+        user_id, provider_id, service_id, booking_period, status, notes
     )
     VALUES (
-        p_user_id,
-        p_provider_id,
-        p_service_id,
-        tstzrange(p_start_at, p_end_at, '[)'),
-        'pending',
-        p_notes
+        p_user_id, p_provider_id, p_service_id, tstzrange(p_start_at, p_end_at, '[)'), 'pending', p_notes
     )
     RETURNING id INTO v_booking_id;
 
     INSERT INTO booking_events (
-        booking_id,
-        actor_user_id,
-        event_type,
-        old_status,
-        new_status,
-        event_data
+        booking_id, actor_user_id, event_type, old_status, new_status, event_data
     )
     VALUES (
-        v_booking_id,
-        p_user_id,
-        'created',
-        NULL,
-        'pending',
+        v_booking_id, p_user_id, 'created', NULL, 'pending',
         jsonb_build_object(
             'provider_id', p_provider_id,
             'service_id', p_service_id,

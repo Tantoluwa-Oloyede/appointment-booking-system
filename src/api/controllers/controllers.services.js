@@ -20,47 +20,6 @@ export const createService = async (req, res, next) => {
             });
         }
 
-        // required fields
-        if (!name || !duration_minutes || price === undefined) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'name, duration_minutes, and price are required'
-            });
-        }
-
-        if (name.trim().length < 3) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'name must be at least 3 characters'
-            });
-        }
-
-        if (!Number.isInteger(duration_minutes) || duration_minutes <= 0) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'duration_minutes must be a positive integer'
-            });
-        }
-
-        if (isNaN(price) || price < 0) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'price must be a non-negative number'
-            });
-        }
-
-        const priceStr = String(price);
-        if (priceStr.includes('.') && priceStr.split('.')[1].length > 2) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'price cannot have more than 2 decimal places'
-            });
-        }
 
         // get provider profile
         const providerProfile = await resolveProviderProfile(user_id);
@@ -188,41 +147,6 @@ export const updateService = async (req, res, next) => {
             });
         }
 
-        // at least one field must be provided
-        if (!name && !description && !category && !duration_minutes && price === undefined) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'At least one field is required to update'
-            });
-        }
-
-        if (duration_minutes !== undefined && (!Number.isInteger(duration_minutes) || duration_minutes <= 0)) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'duration_minutes must be a positive integer'
-            });
-        }
-
-        if (price !== undefined && (isNaN(price) || price < 0)) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'price must be a non-negative number'
-            });
-        }
-
-        if (price !== undefined) {
-            const priceStr = String(price);
-            if (priceStr.includes('.') && priceStr.split('.')[1].length > 2) {
-                return res.status(422).json({
-                    status: 'error',
-                    code: 422,
-                    message: 'price cannot have more than 2 decimal places'
-                });
-            }
-        }
 
         const providerProfile = await resolveProviderProfile(user_id);
         if (!providerProfile) {

@@ -1,3 +1,5 @@
+process.env.TZ = 'UTC';
+
 import express from 'express';
 import 'dotenv/config';
 import{json, urlencoded} from 'express';
@@ -31,8 +33,10 @@ app.use((err, _req, res, _next) => {
 const port = process.env.PORT;
 const host = process.env.HOST || '0.0.0.0';
 
-app.listen(port, host, () => {
-  console.log(`Server running on http://${host}:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, host, () => {
+    console.log(`Server running on http://${host}:${port}`);
+  });
+}
 
 export default app;
