@@ -21,7 +21,7 @@ app.use((_req, res) => {
   res.status(404).json({ status: 'error', message: 'Resource not found' });
 });
 
-// 500 — needs 4 params so Express knows it's an error handler
+
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
   res.status(500).json({

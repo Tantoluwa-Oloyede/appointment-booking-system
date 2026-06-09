@@ -30,7 +30,6 @@ const initOptions = {
 
 const pg = pgp(initOptions); 
 
-// 🚨 DYNAMIC SWITCH: Pick the test database if Jest is running, otherwise use development
 const targetConnectionString = process.env.NODE_ENV === 'test'
   ? process.env.DATABASE_URL_TEST
   : process.env.DATABASE_URL;
