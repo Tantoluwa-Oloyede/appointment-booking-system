@@ -316,15 +316,16 @@ export const cancelBooking = async (req, res, next) => {
 
         if (role === 'customer') {
             cancelled = await bookingModel.cancelBookingAsCustomer(id, user_id, reason);
-        } else if (role === 'provider') {
+        } 
+        else if (role === 'provider') {
             const providerProfile = await serviceModel.getProviderProfileByUserId(user_id);
-            if (!providerProfile) {
-                return res.status(403).json({
-                    status: 'error',
-                    code: 403,
-                    message: 'Provider profile not found'
-                });
-            }
+                if (!providerProfile) {
+                    return res.status(403).json({
+                        status: 'error',
+                        code: 403,
+                        message: 'Provider profile not found'
+                    });
+                }
             cancelled = await bookingModel.cancelBookingAsProvider(id, providerProfile.id, reason);
         } else {
             return res.status(403).json({

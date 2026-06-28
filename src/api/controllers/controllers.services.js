@@ -68,7 +68,7 @@ export const getServices = async (req, res, next) => {
         }
 
         let services;
-
+ 
         if (role === 'provider') {
             // verify this provider_id actually belongs to the logged in user
             const providerProfile = await serviceModel.getProviderProfileByUserId(user_id);

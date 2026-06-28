@@ -1,6 +1,9 @@
 export const validateBody = (schema) => {
     return (req, res, next) => {
-        const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+        const { error, value } = schema.validate(req.body, { 
+            abortEarly: false, 
+            stripUnknown: true 
+        });
         if (error) {
             return res.status(422).json({
                 status: 'error',
@@ -9,25 +12,33 @@ export const validateBody = (schema) => {
                 errors: error.details.map(err => err.message)
             });
         }
-        req.body = value; // replace req.body with stripped/validated values
+        req.body = value; 
         next();
     };
 };
 
 export const validateQuery = (schema) => {
-    return (req, res, next) => {
-        const { error, value } = schema.validate(req.query, { abortEarly: false, stripUnknown: true });
-        if (error) {
-            return res.status(422).json({
-                status: 'error',
-                code: 422,
-                message: 'Validation failed',
-                errors: error.details.map(err => err.message)
-            });
-        }
-        req.query = value;
-        next();
-    };
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.query, { abortEarly: false, stripUnknown: true });
+
+    if (error) {
+      return res.status(422).json({
+        status: 'error',
+        code: 422,
+        message: 'Validation failed',
+        errors: error.details.map(err => err.message)
+      });
+    }
+
+
+    // Safely clean out old keys and transfer validated ones
+    for (const key in req.query) {
+      delete req.query[key];
+    }
+    Object.assign(req.query, value); 
+
+    next();
+  };
 };
 
 export const validateParams = (schema) => {
@@ -45,3 +56,23 @@ export const validateParams = (schema) => {
         next();
     };
 };
+
+
+
+
+
+// export const validateQuery = (schema) => {
+//     return (req, res, next) => {
+//         const { error, value } = schema.validate(req.query, { abortEarly: false, stripUnknown: true });
+//         if (error) {
+//             return res.status(422).json({
+//                 status: 'error',
+//                 code: 422,
+//                 message: 'Validation failed',
+//                 errors: error.details.map(err => err.message)
+//             });
+//         }
+//         req.query = value;
+//         next();
+//     };
+// };

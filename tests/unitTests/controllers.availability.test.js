@@ -17,7 +17,7 @@ describe('Availability Controller Unit Tests', () => {
       user: { id: 'prov-user-123', role: 'provider' }
     };
     res = {
-      status: jest.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis(),  
       json: jest.fn().mockReturnThis()
     };
     next = jest.fn();

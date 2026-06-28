@@ -29,7 +29,7 @@ export const getStats = async (req, res, next) => {
 
     } catch (error) {
         return next(error);
-    }
+    } 
 };
 
 

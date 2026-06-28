@@ -242,8 +242,15 @@ describe('Auth Controller Unit Tests', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'success',
+          code: 200,
+          message: 'Login successful',
           data: {
-            user: { id: 'u_1', full_name: 'John', email: 'john@example.com', role: 'customer' },
+            user: { 
+                    id: '54e0a06e-6329-11f1-8fab-325096b39f47', 
+                    full_name: 'John', 
+                    email: 'john@example.com', 
+                    role: 'customer' 
+                  },
             token: 'mock-jwt-token'
           }
         })
