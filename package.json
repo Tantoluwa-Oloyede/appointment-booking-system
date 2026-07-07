@@ -9,8 +9,8 @@
     "test:coverage": "jest --coverage",
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
-    "migrate:up": "db-migrate up",
-    "migrate:down": "db-migrate down"
+    "migrate:up": "npx db-migrate up",
+    "migrate:down": "npx db-migrate down"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +18,8 @@
   "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "db-migrate": "^0.11.14",
+    "db-migrate-pg": "^1.5.2",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "joi": "^18.1.2",
