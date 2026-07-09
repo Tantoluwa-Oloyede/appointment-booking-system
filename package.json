@@ -13,6 +13,7 @@
     "test:coverage": "jest --coverage",
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
+    "start:prod": "npm run migrate:up && node src/app.js",
     "migrate:up": "db-migrate up",
     "migrate:down": "db-migrate down",
     "migrate:create": "db-migrate create"
