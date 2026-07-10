@@ -2,7 +2,7 @@
   "name": "appointment-and-booking-system",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/app.js",
   "keywords": [],
   "author": "Oloyede",
   "license": "ISC",
