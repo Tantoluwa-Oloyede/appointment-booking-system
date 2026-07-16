@@ -36,7 +36,10 @@ const targetConnectionString = process.env.NODE_ENV === 'test'
 
 const cn = {
   connectionString: targetConnectionString,
-  max: 100
+  max: 100,
+  // This safely handles cloud database SSL requirements ( Aiven )
+  ssl: process.env.NODE_ENV === 'test' ? false : { rejectUnauthorized: false }
+
 };
 
 const db = pg(cn);
