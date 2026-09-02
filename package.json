@@ -12,9 +12,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "dev": "nodemon src/app.js",
-    "build": "npm install && db-migrate up --env production",
+    "build": "npm install",
     "start": "node src/app.js",
-    "start:prod": "npm run migrate:up && node src/app.js",
+    "start:prod": "db-migrate up -c 100 --env production && node src/app.js",
     "migrate:up": "db-migrate up --env production",
     "migrate:down": "db-migrate down",
     "migrate:create": "db-migrate create"
