@@ -1,15 +1,18 @@
+
 {
-    "defaultEnv":{
-      "ENV":"NODE_ENV"
-    },
-    "development": {
-      "ENV": "DATABASE_URL"
-    },
-    "test": {
-      "ENV": "TEST_DATABASE_URL"
-    },
-    "production": {
-      "ENV": "DATABASE_URL"
-    },
-    "sql-file" : true
+  "defaultEnv": {
+    "ENV": "NODE_ENV"
+  },
+  "development": {
+    "ENV": "DATABASE_URL"
+  },
+  "test": {
+    "ENV": "TEST_DATABASE_URL"
+  },
+  "production": {
+    "driver": "pg",
+    "connectionString": { "ENV": "DATABASE_URL" },
+    "ssl": { "rejectUnauthorized": false }
+  },
+  "sql-file": true
 }
