@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const initOptions = {
-  noWarnings: true,
+    noWarnings: true,
 };
 
 const pg = pgp(initOptions); 
@@ -15,10 +15,7 @@ const targetConnectionString = process.env.NODE_ENV === 'test'
 
 const cn = {
   connectionString: targetConnectionString,
-  max: 100,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: false } 
-    : false
+  max: 100
 };
 
 const db = pg(cn);
